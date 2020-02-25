@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <title>Title</title>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .mapDiv{
+            width: 100vw;
+            height: 50vh; /*상대적인 단위*/
+        }
+
+    </style>
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous">
+
+    </script>
+
+</head>
+<body>
+<div id="map" class="mapDiv"></div>
+            <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=284439946f9ed52706bb86fb64fa3ff0"></script>
+    <script>
+        var container = document.getElementById('map');
+        var options = {
+            center: new kakao.maps.LatLng(37.563400, 126.984730),
+            level: 3
+        };
+
+        var map = new kakao.maps.Map(container, options);
+
+        (function() {
+            var geolocation = navigator.geolocation;
+            console.log('===============');
+            console.log(geolocation);
+            geolocation.getCurrentPosition(showLocation, errorHandler);
+        })()
+
+        function showLocation(position){
+            console.log("position",position);
+            var coords = position.coords;
+            console.log(coords);
+            var currentCenter = new kakao.maps.LatLng(coords.latitude, coords.longitude);
+            map.panTo(currentCenter);
+        }
+        function errorHandler(e){
+            console.log("e",e);
+        }
+        function setCenter() {
+            // 이동할 위도 경도 위치를 생성합니다
+            var moveLatLon = new kakao.maps.LatLng(33.452613, 126.570888);
+
+            // 지도 중심을 이동 시킵니다
+            map.setCenter(moveLatLon);
+        }
+
+
+
+
+    </script>
+
+
+    <script>
+        $(document).ready(function(){
+            function setInfo(marker){
+
+                var iwContent = '<div style="padding:5px;">'+arr[i].title+'</div>'; // 인포윈도우에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다.
+
+
+                // 인포윈도우를 생성합니다
+                var infowindow = new kakao.maps.InfoWindow({
+                    content : iwContent
+                });
+
+                kakao.maps.event.addListener(marker, 'mouseover', function() {
+                    // 마커에 마우스오버 이벤트가 발생하면 인포윈도우를 마커위에 표시합니다
+                    infowindow.open(map, marker);
+                });
+
+                // 마커에 마우스아웃 이벤트를 등록합니다
+                kakao.maps.event.addListener(marker, 'mouseout', function() {
+                    // 마커에 마우스아웃 이벤트가 발생하면 인포윈도우를 제거합니다
+                    infowindow.close();
+                });
+            }
+            function dragEvent(){}
+            var arr = [
+                {title: '다락',latitude:37.573642  , longitude:126.986140 },
+                {title: '서브웨이',latitude:37.570422 , longitude:126.985290 },
+                {title: '사이공',latitude:37.570814,  longitude:126.979895 }
+
+            ];
+
+            for(var i = 0; i <arr.length; i++){
+                //마커 추가
+                var position = new kakao.maps.LatLng(arr[i].latitude, arr[i].longitude);
+
+                var marker = new kakao.maps.Marker({
+                    position: position
+
+                });
+                marker.setMap(map);
+                setInfo(marker);
+
+            }
+            kakao.maps.event.addListener(map, 'dragend', function() {
+
+                // 지도 중심좌표를 얻어옵니다
+                var latlng = map.getCenter();
+
+                var message = '변경된 지도 중심좌표는 ' + latlng.getLat() + ' 이고, ';
+                message += '경도는 ' + latlng.getLng() + ' 입니다';
+
+                console.log(message);
+                /*
+                var resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = message;*/
+
+            });
+
+            //showLocation(position);
+        })
+
+    </script>
+
+</body>
+</html>
+
