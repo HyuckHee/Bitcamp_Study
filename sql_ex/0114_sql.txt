@@ -1,0 +1,211 @@
+select vend_name,vend_address,vend_country from vendors order by vend_country desc;
+
+select vend_name,vend_address,vend_country  from vendors;
+------------------------------------------------------------------------------
+select prod_id,vend_id,prod_name,prod_price from products order by prod_price desc;
+
+-----------------------------------------------------------------------------------
+
+select cust_name,cust_address,cust_country from orders order by cust_name desc;
+
+----------------------------------------------------------------------------------------
+//데이터 필터링
+
+select cust_name from customers where cust_email is null order by cust_name desc;
+------
+select cust_name,cust_address from customers where cust_city='Chicago';
+------
+5
+select order_num,prod_id,item_price from orderitems where item_price <10 ;
+
+//고급데이터 필터링 where문
+select cust_name from coustormers where prod_name='Kim Howard' and cust_email is null;
+
+//고급데이터 필터링 IN문
+select cust_name from customers where cust_name IN('Kids Place','Village Toys') and cust_city !='Detroit';
+
+select vend_name from vendors where vend_name IN ('Bear Emporium','Jouets et ours') 
+                                and vend_state is null order by vend_name desc;
+
+
+select prod_name,prod_address from products where ((prod_name like 'Fish%') or (prod_desc like 'P%'));
+
+select prod_name,vend_id,prod_price from products where trim(prod_id) like 'B%1' order by prod_price;
+
+select vend_name,vend_address from vendors where vend_id like 'D%' and vend_city like 'D%';
+
+select vend_name || '(' || rtrim(vend_country) || ')' from vendors order by vend_name;
+
+
+select RTRIM(cust_address) || ' ' || RTRIM(cust_city) || ' ' || RTRIM(cust_state) || ' ' || RTRIM(cust_zip)  vend_Format from customers where trim(cust_name) like 'The%' and cust_country = 'USA';
+
+select order_num, prod_id, quantity*item_price as total_   where order_num IN('20005','20007');
+
+--------------------------------------------------------
+
+select RTRIM(cust_name) || '/' || RTRIM(cust_address) cust_Format from customers where lower(cust_address) like '%south%';
+
+select SUBSTR(prod_id, 1 ,2) from orderitems where order_num not IN('20005','20007');
+
+select cust_name,replace(cust_address,'Drive','Car') from customers ;
+
+select vend_name,SUBSTR(vend_zip,1 ,2) aa from vendors where lower(vend_id) like 'br%' order by vend_name desc;
+
+select ROUND(prod_price,1) || ' / '|| prod_name price_name from products where lower(prod_id) like 'br%';
+
+--데이터 조작함수 사용하기
+select order_num from orders where TO_NUMBER(TO_CHAR(order_date,'MM')) = 2 order by order_num desc;
+
+select order_num from orders where order_date = LAST_DAY(order_date)-1 order by order_num;
+--MONTHS_BETWEEN(더큰날자 , 작은날자) 반대로해서 값이 안나왔음 abs를 사용하면 - 상관없이 잘나옴
+select order_num from orders where abs(MONTHS_BETWEEN(order_date,sysdate))   >185; 
+
+------------------------------------------------------------------------(0114 아침예제)
+
+SELECT order_num,prod_id,DECODE(TRIM(SUBSTR(prod_id , -2 , 1)),0,'국내','해외')
+FROM orderitems
+WHERE (item_price * quantity) >= 500;
+
+SELECT order_num,DECODE(TRIM(SUBSTR(TO_DATE(order_date), -2 , 1)),0,'00',1,'10',2,'20',3,'30','error')
+FROM orders;
+
+SELECT prod_id,prod_name 
+from products 
+where ( 
+    LOWER(prod_name) LIKE '%king%' OR
+    LOWER(prod_desc) LIKE '%king%' 
+    )
+    AND SUBSTR(TRUNC(prod_price,1),-1)NOT IN 9;
+
+---------------------------------------------------------------------------------------------------
+select TO_CHAR(MAX(order_date),'YYYY-MM-DD'), TO_CHAR(MIN(order_date),'YYYY-MM-DD') FROM orders;
+
+-------- 주문된 제품의 종류수 DISTINCT로 중복된 prod_id 제거해줌으로 주문된 제품의 종류수를 확인할수있다.
+
+select COUNT(DISTINCT prod_id) FROM orderitems;
+---------- 주문된 제품별 총 주문수량
+SELECT prod_id, SUM(quantity)
+FROM orderitems
+GROUP BY prod_id;
+
+-------------------- 주문된 제품별 총 주문수량이 100개가 넘은 제품의 제품번호와 주문 수 량
+SELECT prod_id,SUM(quantity)
+FROM orderitems
+GROUP BY prod_id
+HAVING SUM(quantity) > 100;
+
+--주문제품의 주문번호와 주문번호별 주문제품의 수를 추출
+SELECT order_num,COUNT(order_item) 
+FROM orderitems
+GROUP BY order_num;
+
+--주문에서 주문날자별 주문한 고객의 수
+SELECT TO_CHAR(order_date,'YYYY-MM-DD'),COUNT(cust_id) 
+FROM orders
+GROUP BY order_date;
+
+--제품에서 공급업체번호별 제품의수
+SELECT vend_id,COUNT(PROD_NAME) 
+FROM products
+GROUP BY vend_id;
+
+--고객중에 우편번호가 4로 시작되는 고객의수
+SELECT COUNT(cust_id)
+FROM customers
+WHERE SUBSTR(cust_address,1,1) = 4;
+
+--이메일주소가 없는 고객의수
+SELECT COUNT(cust_id)
+FROM customers
+WHERE cust_email IS NULL;
+
+--제품중에 공급업체별 제품가격의 평균을 추출하시오 소수점 1자리
+SELECT vend_id,ROUND(AVG(prod_price),1) AS result
+FROM products
+GROUP BY vend_id;
+
+SELECT cust_id
+FROM orders
+WHERE order_num IN (SELECT order_num
+                    FROM orderitems
+                    WHere prod_id = 'RGAN01');
+                    
+SELECT order_num, order_item, type
+FROM
+(
+    SELECT order_num, order_item, SUBSTR(prod_id,1,2) type
+    FROM orderitems
+)A
+WHERE type = 'BR';
+
+select prod_id,prod_name,prod_price,prod_desc
+FROM products
+WHERE vend_id IN (SELECT vend_id 
+FROM vendors 
+WHERE vend_country = 'USA');
+
+SELECT cust_id,cust_name,cust_address,cust_email 
+FROM customers
+WHERE cust_email is not null AND EXISTS(SELECT * FROM orders WHERE orders.cust_id = customers.cust_id);
+
+select vend_name,prod_name,prod_price
+FROM vendors,products
+WHERE vendors.vend_id=products.vend_id;
+
+select vend_name,prod_name,prod_price
+FROM vendors INNER JOIN products
+    ON vendors.vend_id = Products.vend_id;
+    
+select cust_name, cust_contact
+FROM Customers, orders, orderitems
+WHERE customers.cust_id = orders.cust_id
+AND orderitems.order_num = orders.order_num
+AND prod_id = 'RGAN01';
+
+select cust_id, cust_name, cust_contact
+from customers
+where cust_name =(select cust_name
+                    from customers
+                    where cust_contact = 'Jim Jones');
+
+--41페이지 실습
+select O.order_num, O.order_date, O.cust_id, C.cust_name, C.cust_address 
+FROM orders O, customers C
+WHERE O.cust_id = C.cust_id AND
+    O.order_date=(
+                    select MAX(order_date)
+                    FROM orders
+                    WHERE cust_id = O.cust_id
+                    );
+                    
+--41 페이지 2번
+SELECT TRIM(V.vend_id),TRIM(V.vend_name),TRIM(V.vend_address),TRIM(P.prod_id),TRIM(P.prod_name),TRIM(P.prod_price),TRIM(prod_desc)
+FROM vendors V,products P
+WHERE V.vend_id=P.vend_id AND
+        P.prod_price > (SELECT AVG(prod_price)
+                        FROM products
+                        );
+--3번
+SELECT O.order_num,O.order_date,P.prod_id,TRIM(P.prod_name),P.prod_price,OI.item_price
+FROM orders O,products P,orderitems OI
+WHERE O.order_num = OI.order_num AND
+        P.prod_id = OI.prod_id AND
+        P.prod_price !=OI.item_price;
+--4번
+SELECT V.vend_id,V.vend_name,V.vend_address,OI.order_num,P.prod_id,P.prod_name
+FROM vendors V,orderitems OI,products P
+WHERE V.vend_id = P.vend_id AND
+        P.prod_id = OI.prod_id ;
+
+--P 43페이지 실습
+select P.prod_id,TRIM(P.prod_name),O.order_num,P.prod_price
+FROM products P,orders O;
+
+--P 43페이지 실습
+
+
+--2번
+select C.cust_id, COUNT(O.order_num) AS num_ord
+FROM customers C LEFT OUTER JOIN orders O
+        ON C.cust_id = O.cust_id
+GROUP BY C.cust_id;

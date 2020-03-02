@@ -1,0 +1,163 @@
+--1번
+SELECT DISTINCT TRIM(C.cust_country),C.cust_state,(select count(order_num) 
+                                    from orders 
+                                    where c.cust_id=cust_id) COUNT 
+FROM  customers C,orders O
+WHERE C.cust_id = O.cust_id;
+
+select c.cust_country || '(' || count(o.order_num) || ')', c.cust_state || '(' || count(o.order_num) || ')' from customers c, orders o where c.cust_id = o.cust_id group BY c.cust_country, c.cust_state;
+--2번
+SELECT C.cust_state,MAX(OI.item_price)
+FROM customers C,orders O,orderitems OI
+WHERE C.cust_id=O.cust_id AND
+        O.order_num = OI.order_num
+GROUP BY C.cust_state;
+
+
+--3번
+SELECT TRIM(C.cust_name),TRIM(C.cust_address),SUM(OI.item_price*OI.quantity),
+        (SELECT MAX(S_OI.item_price)
+        FROM orderitems S_OI,vendors S_V,orders S_O,products S_P,customers S_C
+        WHERE S_OI.order_num = S_O.order_num AND
+        S_O.cust_id = S_C.cust_id AND
+        S_OI.prod_id = S_P.prod_id AND
+        S_V.vend_id = S_P.vend_id AND
+        S_C.cust_name = C.cust_name AND
+        LOWER(S_V.vend_address) LIKE '%street%'
+        GROUP BY C.cust_name,C.cust_address
+        ) as street_MAX
+FROM customers C,orders O,orderitems OI
+WHERE C.cust_id = O.cust_id AND
+        O.order_num = OI.order_num
+GROUP BY C.cust_name,C.cust_address;
+
+
+select item_price
+FROM orderitems;
+----------------
+SELECT C.cust_id, O.order_num
+FROM customers C, orders O
+WHERE C.cust_id(+) = O.cust_id;
+
+SELECT C.cust_id,O.order_num
+FROM customers C LEFT OUTER JOIN orders  O
+    ON C.cust_id = O.cust_id;
+    
+select P.prod_id,TRIM(P.prod_name),OI.order_num,P.prod_price
+FROM products P,orderitems OI
+WHERE P.prod_id = OI.prod_id(+);
+
+SELECT *
+FROM orders
+;
+SELECT *
+FROM customers
+;
+SELECT (SELECT COUNT(DISTINCT cust_id)
+        FROM orders
+        ) A
+        (SELECT COUNT(*)
+        FROM customers
+        WHERE cust id NOT IN (
+                SELECT DISTINCT cust_id
+                From orders
+                )
+            )B
+            FROM DUAL
+        C.cust_id,COUNT(O.order_num) count
+FROM customers C,orders O
+WHERE C.cust_id = O.cust_id(+)
+GROUP BY C.cust_id;
+
+SELECT 
+FROM customers C, orders O
+WHERE C.cust_id(+) = O.cust_id;
+
+SELECT (SELECT COUNT(DISTINCT cust_id)
+        FROM orders
+        ) 주문한고객수,
+        (
+        SELECT COUNT(*)
+        FROM customers
+        WHERE cust_id NOT IN 
+                (
+                SELECT DISTINCT cust_id
+                From orders
+                )
+        )주문안한고객 수
+FROM DUAL;
+            
+SELECT cust_name, cust_contact, cust_email
+FROM customers
+WHERE cust_state IN ('IL', 'IN', 'MI')
+UNION
+SELECT cust_name, cust_contact, cust_email
+FROM customers
+WHERE cust_name = 'Fun4AII';
+
+SELECT cust_name, cust_contact, cust_email
+FROM customers
+WHERE cust_state IN ('IL', 'IN', 'MI')
+OR      CUST_NAME = 'Fun4All';
+
+SELECT cust_name, cust_contact, cust_email
+FROM customers
+WHERE cust_state IN ('IL', 'IN', 'MI')
+UNION ALL
+SELECT cust_name, cust_contact, cust_email
+FROM customers
+WHERE cust_name = 'Fun4All'
+ORDER BY cust_name, cust_contact;
+
+SELECT order_num,prod_id,
+        CASE WHEN item_price > 5 THEN '고가'
+        WHEN item_price <5 THEN '저가'
+        ELSE '일치'
+        END AS price_std
+FROM orderitems a
+WHERE item_price >= (
+                SELECT MIN(prod_price)
+                FROM products
+                WHERE prod_id = a.prod_id
+                );
+SELECT SUM((CASE WHEN vend_state = 'MI' THEN 1 ELSE 0 END)) MI_CNT, 
+        SUM((CASE WHEN vend_state = 'CH' THEN 1 ELSE 0 END)) CH_CNT,
+        SUM((CASE WHEN vend_state = 'CA' THEN 1 ELSE 0 END)) CA_CNT,
+        SUM((CASE WHEN vend_state = 'NY' THEN 1 ELSE 0 END)) NY_CNT
+FROM vendors;
+
+SELECT vend_id, vend_state,
+        (CASE WHEN vend_state = 'MI' THEN 1 ELSE 0 END) MI_CNT, 
+        (CASE WHEN vend_state = 'CH' THEN 1 ELSE 0 END) CH_CNT,
+        (CASE WHEN vend_state = 'CA' THEN 1 ELSE 0 END) CA_CNT,
+        (CASE WHEN vend_state = 'NY' THEN 1 ELSE 0 END) NY_CNT
+FROM vendors;
+
+--케이스 웬 예제 2,3
+SELECT order_num,
+        (CASE WHEN TO_NUMBER(TO_CHAR(order_date,'DD')) < 16 THEN TO_CHAR(order_date,'MMDD') 
+            WHEN TO_NUMBER(TO_CHAR(order_date,'DD')) >= 16 
+                        THEN TO_CHAR(LAST_DAY(order_date)+1,'MMDD')
+                        ELSE 'error' END) 
+        order_case
+FROM orders;
+
+INSERT INTO customers 
+    VALUES('1000000016', 'Toy Land', '123 Any Street', 'New York', 'NY', '11111', 'USA', NULL , NULL);
+    
+INSERT INTO customers(cust_id,cust_name,cust_address,cust_city,cust_zip,cust_country,cust_contact,cust_email)
+    VALUES('1000000008', 'NULL', '서울시 서초구 강담대로 459', 'Seoul', '53782', 'KOR', 'Kim','ccc@google.co.kr');
+    
+INSERT INTO products (prod_id,vend_id,prod_name,prod_price,prod_desc)
+    VALUES('KR03','DLL01','태권V로보트',100,'향수를 자극하는 어른을 위한 태권V로보트');
+    
+INSERT INTO orders
+    VALUES(20011,'2019-05-04',1000000007);
+    
+
+INSERT INTO orderitems(order_num,order_item,prod_id,quantity,item_price)
+    VALUES(20011,2,'KR03',3,95);
+    
+UPDATE orders
+SET 
+WHERE   

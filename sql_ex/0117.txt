@@ -1,0 +1,174 @@
+1.고객별로 주문한 제품의 수와 주문한 제품 중 최고항목가격(판매가격)을 추출하시오
+결과: 고객번호, 고객이름, 주문제품 수(항목수량), 주문제품 중 최고항목가격
+
+SELECT C.cust_id,C.cust_name,count(OI.quantity),MAX(OI.item_price)
+FROM customers C,orderitems OI,orders O
+WHERE C.cust_id = O.cust_id AND
+            OI.order_num = O.order_num
+GROUP BY C.cust_id,C.cust_name;
+
+2.주문된 제품 중에 제품의 공급업체가 있는 도시가 ‘Dollsville’이고 주문된 총 제품의수(항목수량)가 300을 넘는 제품명을
+추출하시오(S_A.QUANTITY)
+
+SELECT TRIM(P.prod_name),SUM(OI.quantity)
+FROM products P,orderitems OI,vendors V
+WHERE P.prod_id = OI.prod_id AND
+            V.vend_id = P.vend_id
+GROUP BY V.vend_city,P.prod_name
+HAVING V.vend_city = 'Dollsville' AND
+            SUM(OI.quantity) > 300;
+
+3.고객별로 주문한 상품 중에 가장 비싼 제품명을 추출하시오
+결과: 고객번호, 고객이름, 제품번호, 제품이름, 항목가격(판매가격)
+
+SELECT C.cust_id,C.cust_name,P.prod_id,P.prod_name,OI.item_price
+FROM customers C,orders O, orderitems OI, products P,
+        (SELECT S_O.cust_id,MAX(S_OI.item_price)max_price
+        FROM orderitems S_OI, orders S_O
+        WHERE S_OI.order_num=S_O.order_num
+        GROUP BY S_O.cust_id
+        )t
+WHERE C.cust_id=O.cust_id
+AND O.order_num = OI.order_num
+AND OI.prod_id = P.prod_id
+AND C.cust_id = t.cust_id
+AND OI.item_price = t.max_price;
+
+-----------------------------
+SELECT count(cust_id)
+FROM customers
+WHERE cust_email IS NULL;
+
+SELECT cust_state,count(cust_id)
+FROM customers
+GROUP BY cust_state;
+
+SELECT P.prod_id,TRIM(P.prod_name),P.prod_price,P.prod_desc
+FROM products P
+WHERE P.vend_id = (SELECT V.vend_id FROM vendors V WHERE V.vend_id = P.vend_id AND V.vend_country = 'USA');
+
+SELECT cust_id,cust_name,cust_address,cust_email
+FROM customers
+WHERE cust_email IS NOT NULL AND
+        EXISTS (
+                    SELECT *
+                    FROM orders
+                    WHERE orders.cust_id = customers.cust_id);
+                    
+SELECT V.vend_id,V.vend_name,V.vend_address,P.prod_id,P.prod_name,P.prod_price,P.prod_desc
+FROM vendors V INNER JOIN products P
+ON V.vend_id = P.vend_id
+WHERE P.prod_price >=  (SELECT AVG(prod_price) FROM products WHERE vend_id=V.vend_id);
+/*
+SELECT vend_id
+FROM vendors V,products 
+WHERE 
+*/
+
+SELECT order_num,order_date
+FROM orders
+WHERE  ( SELECT order_date  FROM orders WHERE order_date = (TO_NUMBER(SUBSTR(order_date,'DD'))>16;
+
+SELECT vend_id,vend_name,vend_address,(
+                                                            SELECT COUNT(P.prod_id) A FROM vendors V1,products P 
+                                                            WHERE V1.vend_id=P.vend_id 
+                                                            AND V.vend_id = V1.vend_id 
+                                                            GROUP BY V1.vend_id 
+                                                            )
+FROM vendors V
+GROUP BY V.vend_id,vend_name,vend_address
+HAVING A >= 2;
+
+SELECT vend_id,vend_name,vend_address,COUNT(prod_id)
+FROM vendors
+GROUP BY vend_id
+HAVING COUNT(prod_id)>=2;
+
+SELECT vend_id,vend_name,vend_address,
+        (
+         SELECT COUNT(prod_id) A 
+         FROM products
+         WHERE  V.vend_id = vend_id 
+         ) A
+FROM vendors V
+WHERE (
+        SELECT COUNT(prod_id)
+        FROM products
+        WHERE  V.vend_id = vend_id 
+    ) >= 2;
+
+SELECT vend_id,vend_name,vend_address,(
+                                                            SELECT COUNT(prod_id) A 
+                                                            FROM products
+                                                            WHERE  V.vend_id = vend_id 
+                                                            GROUP BY vend_id 
+                                                            HAVING COUNT(prod_id) >=2
+                                                            ) A
+FROM vendors V;
+
+CREATE VIEW V_CUST_INFO AS
+SELECT b.cust_id, SUM(a.quantity) as quantity, MAX(a.item_price) as max_price
+FROM orderitems a, orders o
+WHERE a.order_num  = b.order_num;
+GROUPBY b.cust_id;
+
+F_GET_CUST  NM
+
+SELECT A.CUST_ID, F_GET_CUSTNM(A.CUST_ID)AS CUST_NM
+
+FROM   CUSTOMERS A
+
+;
+
+SELECT DNAME, JOB,
+            COUNT(*) Total_EMpl,
+            SUM(SAL) Total_Sal
+FROM    EMP, DEPT
+WHERE DEPT.DEPTNO = EMP.DEPTNO
+GROUP BY ROLLUP (DNAME, JOB);
+
+SELECT empno, ename, deptno, sal,
+            SUM(sal) OVER (PARTITION BY deptno ORDER BY empno ROWS 1 PRECEDING) pre_sum
+FROM emp;
+
+SELECT empno, ename,deptno,sal,
+            SUM(sal) OVER (ORDER BY deptno, empno
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) sal1
+            ,SUM(sal) OVER (ORDER BY deptno, empno
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) sal2
+            ,SUM(sal) OVER (ORDER BY deptno, empno
+                                    ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) sal3
+FROM emp;
+
+SELECT JOB, ENAME, SAL,
+            DENSE_RANK() OVER (ORDER BY SAL DESC) ALL_BANK,
+            RANK() OVER (PARTITION BY JOB ORDER BY SAL DESC) JOB_RANK
+FROM EMP
+;
+
+3. 상품정보에서 다음이 정보를 추출하시오
+
+  - 결과: 공급업체ID, 공급업체 상품 중 2번째로 비싼 제품가격(2번째가 없는 경우 첫번째 가격)
+
+
+
+SELECT
+
+    VEND_ID, MIN(PROD_PRICE)
+
+FROM
+
+(
+
+    SELECT PROD_ID, VEND_ID, PROD_PRICE,
+
+           RANK() OVER (PARTITION BY VEND_ID ORDER BY PROD_PRICE DESC) AS PRICE_RNK
+
+    FROM   PRODUCTS
+
+) A
+
+WHERE PRICE_RNK IN (1, 2)
+
+GROUP BY VEND_ID
+;

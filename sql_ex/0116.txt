@@ -1,0 +1,142 @@
+SELECT TRIM(P.prod_name)
+FROM products P,orderitems OI
+WHERE P.prod_id = OI.prod_id AND
+            OI.quantity >= 100 AND
+            OI.order_num IN ('20005','20007');
+            
+ 1. 주문번호가 20005, 20007인 주문된 제품중에 총 주문수량이 100개가 넘은 제품의 제품이름           
+            select p.prod_name 
+from orderitems oi, products p
+where oi.prod_id=p.prod_id
+and oi.order_num IN ('20005','20007')
+and p.prod_id IN (select oi.prod_id from orderitems oi group by oi.prod_id having sum(oi.quantity) >= 100);
+
+2. DDL01나 BRS01 제조업체에서 만든 제품 중 판매가격이 10불이상 인제품의 총 판매수량
+
+   결과: 제품명, 총판매수량
+SELECT P.prod_id,SUM(OI.quantity)
+FROM products P,orderitems OI,vendors V
+WHERE P.prod_id = OI.prod_id AND
+            V.vend_id = P.vend_id AND
+        OI.item_price >= 10 AND
+        V.vend_id IN ('DDL01','BRS01')
+GROUP BY V.vend_id,P.prod_id;
+
+3. 다음의 조건에 따라 고객의 고객번호, 고객이름, 고객주소를 추출하시오
+    조건: 주문한 총 상품의 개수가 2개이상인 고객
+
+SELECT TRIM(C.cust_id),TRIM(C.cust_name),TRIM(C.cust_address)
+FROM customers C,orders O
+WHERE C.cust_id = O.cust_id
+GROUP BY C.cust_id,C.cust_name,C.cust_address
+HAVING COUNT(*) >= 2;
+
+ 4. 현재 주문된 상품을 공급한 공급업체의 국가별 공급업체수
+    결과: 국가,총공급업체수, 주문된 상품을 공급한 공급업체 수
+    
+SELECT TRIM(V1.vend_country),COUNT(*),(SELECT COUNT(DISTINCT V.vend_id) 
+                                                                FROM vendors V,
+                                                                products P,orderitems OI,orders O
+                                                                WHERE V.vend_id = P.vend_id AND
+                                                                O.order_num = OI.order_num AND
+                                                                P.prod_id = OI.prod_id AND
+                                                                V.vend_country = V1.vend_country
+                                                                ) count_vend
+FROM vendors V1
+GROUP BY V1.vend_country;
+                                                                
+                                                                
+    
+
+SELECT C.cust_id, O.order_num                     
+FROM   Customers C LEFT OUTER JOIN Orders O            --LEFT JOIN과 동일     
+       ON C.cust_id = O.cust_id                     
+WHERE  TRIM(CUST_COUNTRY) = 'USA'                     
+AND      O.cust_id IS NULL                     
+;    
+
+SELECT LEVEL,LPAD(' ', 4 * (LEVEL-1)) || EMPNO 사원,
+                MAG 관리자, CONNECT_BY_ISLEAF ISLEAF
+                FROM EMP
+                START WITH MAG IS NULL
+                CONNECT BY PRIOR EMPNO = MGR; 
+                
+SELECT connect_by_root(EMPNO) 루트사원, SYS_CONNECT_BY_PATH(EMPNO, '/') 경로,
+            EMPNO 사원, MGR 관리자
+FROM EMP
+START WITH MGR IS NULL
+CONNECT BY PRIOR EMPNO = MGR;
+
+
+CREATE  VIEW V_EMP_INFO AS
+SELECT  E.EMPNO, E.ENAME, E.JOB, E.MGR, E.HIREDATE,E.SAL, E.DEPTNO, D.DNAME
+FROM    EMP E, DEPT D
+WHERE  E.DEPTNO = D.DEPTNO;
+
+SELECT * FROM V_EMP_INFO;
+
+주문번호, 주문날자, 주문제품ID, 주문제품명, 주문가격, 제품제조 공급업체ID, 
+제품제조 공급업체 이름
+CREATE VIEW V_test AS 
+SELECT O.order_num,O.order_date,P.prod_id,P.prod_name,SUM(OI.item_price*OI.quantity),V.vend_id,V.vend_name
+FROM vendors V,products P,orderitems OI,orders O
+WHERE V.vend_id = P.vend_id AND
+        P.prod_id = OI.prod_id AND
+        O.order_num = OI.order_num;
+     /*   
+CREATE OR REPLACE FUNCTION F_GET_DEPTNM(P_DEPTNO IN NUMBER)
+    RETURN VARCHAR2
+IS
+    V_DNAME VARCHAR2(50);
+BEGIN 
+
+    SELECT DNAME
+    INTO V_DNAME
+    FROM DEPT
+    WHERE DEPTNO = P_DEPTNO;
+    
+    RETURN V_DNAME;
+END;
+
+SELECT A.EMPNO,A.DEPTNO,F_GET_DEPTNM(A.DEPTNO)AS DNAME
+FROM EMP A;
+
+*/
+--------------------------- 처음부터 다시 
+
+SELECT vend_name
+FROM vendors
+WHERE vend_name IN('Bear Emporium','Jouets et ours') AND
+            vend_state IS NULL;
+            
+SELECT order_num
+FROM orderitems
+WHERE prod_id IN('BR03','BNBG01')AND
+            ;
+            
+SELECT cust_address||'/'||cust_city||'/'||cust_state||'/'||cust_zip||'('||cust_country||')'
+FROM customers
+WHERE cust_name LIKE 'The%' AND
+            cust_country = 'USA';
+            
+SELECT TRIM(cust_name)||'/'||TRIM(LOWER(cust_address))||')'
+FROM customers
+WHERE LOWER(cust_address) LIKE '%south%';
+
+SELECT prod_name,ROUND(prod_price, 1)
+FROM products
+WHERE LOWER(prod_id) LIKE 'br%';
+
+SELECT order_num,prod_id,TRUNC(item_price)
+FROM orderitems
+WHERE item_price >10 ;
+
+SELECT cust_id,TO_CHAR(order_date,'MM-DD')
+FROM orders
+WHERE cust_id LIKE '%1';
+
+SELECT vend_id,MAX(prod_price)
+FROM products
+WHERE vend_id IN('BRS01', 'DLL01')
+GROUP BY vend_id
+HAVING MAX(prod_price) >=5;
