@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.hyuckey.mapper.BoardMapper">
+
+	<select id="list" resultType="String">
+		select * from tbl_board where bno <1000
+	</select>
+</mapper>
