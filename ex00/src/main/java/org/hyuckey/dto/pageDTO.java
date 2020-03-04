@@ -1,5 +1,14 @@
 package org.hyuckey.dto;
 
-public class pageDTO {
+import lombok.Data;
 
+@Data
+public class PageDTO {
+	private int page; //페이지번호
+	private int amount; //
+	
+	public PageDTO() {
+		page = 1;
+		amount = 10;
+	}
 }
