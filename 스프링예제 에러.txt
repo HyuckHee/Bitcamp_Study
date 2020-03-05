@@ -1,0 +1,24 @@
+스프링예제 에러
+
+board/list Not Found 에러
+1.맵핑문제 
+@Controller 어노테이션이 컨트롤러 파일에 있는지 확인 
+@GetMapping경로 확인
+
+org.springframework.web.servlet.PageNotFound - No mapping found for HTTP 
+이는 서블릿에서 http의 요청을 제대로 매핑 해 주지 못해서 생긴 문제이다.
+
+즉, 들어오는 url 요청에 대해 어느 페이지로 보내줄지를 제대로 처리하지 못한다는 것이다.
+
+소스 상에는 @Controller, @RequestMapping 등의 어노테이션 설정이 잘못 된 경우이다.
+
+아래 두가지를 확인해 보고 수정해 주자.
+1. @Controller 어노테이션이 컨트롤러 클래스나 메서드에 적용되어 있는지?
+
+2. @RequestMapping 의 설정이 정상적인지.
+
+org.springframework.beans.factory.UnsatisfiedDependencyException
+1.Service단에 @Service,@AllArgsConstructor
+ 어노테이션을 걸어주지않아 실행 되지않았다.
+(참고)에러관련 링크
+https://beagle-dev.tistory.com/122
