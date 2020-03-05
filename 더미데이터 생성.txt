@@ -1,0 +1,10 @@
+//가상 데이터 생성
+INSERT INTO [table_name] (KEY, COL_NAME1, COL_NAME2, COL_NAME3)
+values (seq_board.nextval, 'VALUE','VALUE', 'VALUE');
+
+//더미데이터 생성
+INSERT INTO [table_name] (seq_board.nextval, 'VALUE','VALUE', 'VALUE')
+(seq_board.nextval, 'VALUE','VALUE', 'VALUE'
+from [table_name]);
+
+
